@@ -44,6 +44,32 @@ Or, install it locally in your project:
 npm install wpress-extract2 --save-dev
 ```
 
+## Binary Releases
+
+Prebuilt binaries are published for:
+
+- Linux (`x64`, `arm64`)
+- macOS (`x64`, `arm64`)
+- Windows (`x64`, `arm64`)
+
+Download the archive for your platform from the project releases page:
+
+- https://github.com/ProgrammerNomad/wpress-extract2/releases
+
+After extracting the archive, run the binary directly:
+
+- macOS / Linux:
+
+```bash
+./wpress-extract2 backup.wpress
+```
+
+- Windows (PowerShell):
+
+```powershell
+.\wpress-extract2.exe backup.wpress
+```
+
 ## Usage
 
 ```bash
@@ -145,15 +171,34 @@ npm install
 ### Scripts
 
   - `npm start`: Run the CLI tool with the provided arguments.
+  - `npm run build:binary`: Build a native single-file executable for your current OS/architecture in `dist/`.
   - `npm run lint`: Run ESLint to check for code style issues.
   - `npm run format`: Run Prettier to automatically format the code.
   - `npm test`: Run tests (currently, there are no tests specified).
 
 ### Building from Source
 
-If you want to build the executable from the source:
+If you want to run directly from source:
 
 1.  Make sure you have Node.js and npm installed.
 2.  Clone this repository.
 3.  Install dependencies: `npm install`
 4.  Run the CLI directly using Node.js: `node cli.js <input.wpress> [options]`
+
+If you want to build a native binary from source:
+
+1.  Install dependencies: `npm install`
+2.  Build the binary: `npm run build:binary`
+3.  Run output from `dist/wpress-extract2` (or `dist/wpress-extract2.exe` on Windows)
+
+### Automated GitHub Release Builds
+
+This repository includes a GitHub Actions workflow at `.github/workflows/release.yml` that builds binaries for all supported platforms.
+
+- Trigger automatically: publish a GitHub Release.
+- Trigger manually: run the **Build release binaries** workflow via **Actions** → **Run workflow**.
+
+Workflow output:
+
+- On release publish: archives are attached to the GitHub Release.
+- On manual runs: archives are uploaded as workflow artifacts.

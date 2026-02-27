@@ -1,0 +1,95 @@
+name: Build release binaries
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Optional version/tag label for artifacts (example v1.2.3)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            os: ubuntu-24.04
+          - target: linux-arm64
+            os: ubuntu-24.04-arm
+          - target: macos-x64
+            os: macos-13
+          - target: macos-arm64
+            os: macos-14
+          - target: windows-x64
+            os: windows-2022
+          - target: windows-arm64
+            os: windows-11-arm
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build binary
+        run: npm run build:binary
+
+      - name: Resolve version label
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.tag }}" ]; then
+            VERSION="${{ inputs.tag }}"
+          else
+            VERSION="v$(node -p "require('./package.json').version")"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Archive binary (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p release
+          NAME="wpress-extract2-${{ steps.version.outputs.version }}-${{ matrix.target }}"
+          cp dist/wpress-extract2 "release/$NAME"
+          tar -C release -czf "release/$NAME.tar.gz" "$NAME"
+
+      - name: Archive binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release -Force | Out-Null
+          $name = "wpress-extract2-${{ steps.version.outputs.version }}-${{ matrix.target }}"
+          Copy-Item dist/wpress-extract2.exe "release/$name.exe"
+          Compress-Archive -Path "release/$name.exe" -DestinationPath "release/$name.zip" -Force
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-${{ steps.version.outputs.version }}
+          path: release/*
+
+      - name: Upload assets to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.tar.gz
+            release/*.zip

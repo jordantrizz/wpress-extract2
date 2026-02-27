@@ -31,7 +31,9 @@
       "yargs": "^17.7.2"
   },
   "devDependencies": {
+      "esbuild": "^0.25.10",
       "eslint": "^8.56.0",
+      "postject": "^1.0.0-alpha.6",
       "prettier": "^3.2.4"
   },
   "engines": {
@@ -51,6 +53,7 @@
   "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
       "start": "node cli.js",
+      "build:binary": "node scripts/build-binary.mjs",
       "lint": "eslint .",
       "format": "prettier --write ."
   }
